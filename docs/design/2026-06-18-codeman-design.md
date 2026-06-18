@@ -132,18 +132,23 @@ keep. Ship empty `session-summary.md` and `INDEX.md` templates. No content.
 `~/.codeman/vendor/`:
 
 - **gitnexus** — `git clone https://github.com/abhigyanpatwari/GitNexus.git`
-  → `npm install` (runs its postinstall/build) → `npm run build`. Exposes
-  `gitnexus` (CLI) and an MCP server via `gitnexus serve`.
-- **roborev** — `git clone https://github.com/roborev-dev/roborev.git`
-  → `go build` → place binary on the user's path (or `~/.codeman/bin`). Then run
-  `roborev init` and `roborev skills install` so roborev installs its own skills.
+  into `~/.codeman/vendor/gitnexus` → `npm install` (runs its postinstall/build)
+  → `npm run build`. Exposes `gitnexus` (CLI) and an MCP server via
+  `gitnexus serve`. Requires Node + git; needs no Go.
+- **roborev** — installed via its **official installer**,
+  `curl -fsSL https://roborev.io/install.sh | bash`, which downloads a prebuilt
+  release binary (no Go toolchain or build step required — works for most users
+  with no heavy dependencies). The bootstrap then runs `roborev init` and
+  `roborev skills install` so roborev installs its own skills. codeman does not
+  vendor or repackage roborev; it invokes roborev's own installer.
 
-The bootstrap is idempotent (re-running updates existing clones via `git pull`),
-detects missing prerequisites (Node, Go, git) and degrades gracefully with a
-clear message and the upstream install instructions rather than failing hard.
-A documented fallback (the upstream official installer) is noted in the README
-for users who prefer the official release, but the default codeman path is
-git-direct per requirement.
+The bootstrap is idempotent (re-running updates the gitnexus clone via
+`git pull` and re-runs the roborev installer, which is itself idempotent),
+detects missing prerequisites (git, Node for gitnexus; a network connection for
+the roborev installer) and degrades gracefully with a clear message and the
+upstream install instructions rather than failing hard. A documented fallback
+(`npm install -g gitnexus`) is noted in the README for users who prefer the
+packaged gitnexus release over a source build.
 
 ## 7. MCP wiring
 
@@ -211,9 +216,10 @@ MIT.
 
 1. `/plugin marketplace add dbrami/codeman` + `/plugin install codeman` loads the
    skills, hooks, and slash commands with no errors.
-2. `/codeman-setup` clones and builds gitnexus and roborev from their git repos
-   into `~/.codeman/vendor/`, and on a machine missing Node or Go it prints a
-   clear, actionable message instead of crashing.
+2. `/codeman-setup` builds gitnexus from its git repo into `~/.codeman/vendor/`
+   and installs roborev via its official installer; on a machine missing Node
+   (gitnexus) or network access (roborev) it prints a clear, actionable message
+   instead of crashing.
 3. The gitnexus MCP server starts via the launcher once bootstrapped, and prints
    a "run /codeman-setup" message when not.
 4. `daily-recap.sh` and `commit-hygiene.sh` run with no reference to any personal
