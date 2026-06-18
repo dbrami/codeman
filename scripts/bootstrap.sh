@@ -1,31 +1,137 @@
 #!/usr/bin/env bash
-# codeman bootstrap — installs external tools WITHOUT vendoring them.
+# codeman bootstrap — verifies prerequisites and installs the external tools
+# WITHOUT vendoring them.
 #   gitnexus: git clone + npm build into $CODEMAN_HOME/vendor/gitnexus
 #   roborev : official installer (prebuilt binary; no Go toolchain required)
 #
-# Run `bootstrap.sh --check` to report prerequisite status without changing
-# anything. A missing prerequisite degrades gracefully with instructions.
+# Flags:
+#   --check          report prerequisite status and exit (no changes)
+#   --install-deps   install any MISSING prerequisites via the detected
+#                    package manager (brew/apt/dnf/yum) before continuing
+#
+# With no --install-deps, missing prerequisites are reported with the exact
+# install command for your platform; codeman never installs system packages
+# without being asked.
 set -uo pipefail
 
 CODEMAN_HOME="${CODEMAN_HOME:-$HOME/.codeman}"
 GN_DIR="$CODEMAN_HOME/vendor/gitnexus"
 GN_REPO="https://github.com/abhigyanpatwari/GitNexus.git"
 ROBOREV_INSTALL="https://roborev.io/install.sh"
-CHECK=0
-[ "${1:-}" = "--check" ] && CHECK=1
 
-have()   { command -v "$1" >/dev/null 2>&1; }
-report() { printf '  %-10s %s\n' "$1:" "$2"; }
+MODE=run
+INSTALL_DEPS=0
+for a in "$@"; do
+  case "$a" in
+    --check)        MODE=check;;
+    --install-deps) INSTALL_DEPS=1;;
+    *) echo "unknown arg: $a" >&2; exit 64;;
+  esac
+done
 
-echo "codeman setup — prerequisite check"
-have git  && report git  "ok"                       || report git  "MISSING (required for gitnexus)"
-have node && report node "ok ($(node -v 2>/dev/null))" || report node "MISSING (required to build gitnexus)"
-have npm  && report npm  "ok"                        || report npm  "MISSING (required to build gitnexus)"
-have curl && report curl "ok"                        || report curl "MISSING (required for roborev installer)"
-have gitnexus && report gitnexus "already on PATH"   || report gitnexus "will build from source"
-have roborev  && report roborev  "already on PATH"   || report roborev  "will install via official installer"
+# have(): true if a command exists. CODEMAN_FAKE_MISSING (space-separated tool
+# names) forces specific tools to read as missing — a test seam only.
+have() {
+  case " ${CODEMAN_FAKE_MISSING:-} " in *" $1 "*) return 1;; esac
+  command -v "$1" >/dev/null 2>&1
+}
 
-if [ "$CHECK" = 1 ]; then
+# Detect a package manager.
+PKG=""
+if   have brew;    then PKG=brew
+elif have apt-get; then PKG=apt
+elif have dnf;     then PKG=dnf
+elif have yum;     then PKG=yum
+fi
+
+# Map a tool to its package name for the detected manager.
+pkg_name() {
+  case "$1:$PKG" in
+    rg:*)            echo ripgrep;;
+    node:apt|node:dnf|node:yum) echo nodejs;;
+    node:brew)       echo node;;
+    npm:apt)         echo npm;;
+    npm:brew)        echo node;;
+    npm:dnf|npm:yum) echo nodejs;;
+    python3:brew)    echo python;;
+    python3:*)       echo python3;;
+    *)               echo "$1";;
+  esac
+}
+
+# Human-readable install command (for display).
+install_cmd() {
+  case "$PKG" in
+    brew) echo "brew install $1";;
+    apt)  echo "sudo apt-get install -y $1";;
+    dnf)  echo "sudo dnf install -y $1";;
+    yum)  echo "sudo yum install -y $1";;
+    *)    echo "";;
+  esac
+}
+
+# Run an install (no eval; args passed directly).
+do_install() {
+  case "$PKG" in
+    brew) brew install "$1";;
+    apt)  sudo apt-get install -y "$1";;
+    dnf)  sudo dnf install -y "$1";;
+    yum)  sudo yum install -y "$1";;
+    *)    return 1;;
+  esac
+}
+
+MISSING=()
+check_tool() { # tool purpose
+  if have "$1"; then
+    printf '  %-9s ok\n' "$1"
+  else
+    printf '  %-9s MISSING — %s\n' "$1" "$2"
+    MISSING+=("$1")
+  fi
+}
+
+echo "codeman prerequisite check"
+check_tool git     "core: clone + git hooks"
+check_tool rg      "core: security-scan / de-identification gate"
+check_tool jq      "core: hook output + manifest tests"
+check_tool node    "gitnexus build"
+check_tool npm     "gitnexus build"
+check_tool python3 "flow-metrics"
+check_tool gh      "flow-metrics"
+check_tool curl    "roborev installer"
+have gitnexus && printf '  %-9s already on PATH\n' gitnexus || printf '  %-9s will build from source\n' gitnexus
+have roborev  && printf '  %-9s already on PATH\n' roborev  || printf '  %-9s will install via official installer\n' roborev
+
+# Report / optionally install missing prerequisites.
+if [ "${#MISSING[@]}" -gt 0 ]; then
+  echo ""
+  echo "Missing prerequisites:"
+  for t in "${MISSING[@]}"; do
+    cmd="$(install_cmd "$(pkg_name "$t")")"
+    if [ -n "$cmd" ]; then echo "  $t -> $cmd"; else echo "  $t -> install via your package manager"; fi
+  done
+  if [ "$INSTALL_DEPS" = 1 ]; then
+    if [ -n "$PKG" ]; then
+      echo ""
+      echo "Installing missing prerequisites via $PKG ..."
+      for t in "${MISSING[@]}"; do
+        pkg="$(pkg_name "$t")"
+        echo "+ $(install_cmd "$pkg")"
+        do_install "$pkg" || echo "  (failed to install $t; install it manually)"
+      done
+      echo "Re-run with --check to confirm."
+    else
+      echo ""
+      echo "No supported package manager detected (brew/apt/dnf/yum); install the above manually."
+    fi
+  else
+    echo ""
+    echo "Re-run with --install-deps to install these automatically, or install them manually."
+  fi
+fi
+
+if [ "$MODE" = check ]; then
   echo "(--check) no changes made."
   exit 0
 fi
@@ -43,7 +149,7 @@ if have git && have node && have npm; then
   ( cd "$GN_DIR" && npm install && npm run build )
   echo "gitnexus built at $GN_DIR"
 else
-  echo "Skipping gitnexus: install git + Node/npm, then re-run /codeman-setup." >&2
+  echo "Skipping gitnexus: needs git + Node/npm (see above), then re-run /codeman-setup." >&2
 fi
 
 # --- roborev: official installer (prebuilt binary; no Go) ---
@@ -53,7 +159,7 @@ elif have curl; then
   echo "Installing roborev via official installer..."
   curl -fsSL "$ROBOREV_INSTALL" | bash
 else
-  echo "Skipping roborev: install curl, then re-run /codeman-setup." >&2
+  echo "Skipping roborev: needs curl (see above), then re-run /codeman-setup." >&2
 fi
 if have roborev; then
   roborev init || true

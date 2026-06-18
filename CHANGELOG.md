@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-06-18
+
+### Added
+- `/codeman-setup` now verifies **all** prerequisites (git, rg, jq, node, npm,
+  python3, gh, curl), grouped by the feature that needs them.
+- `bootstrap.sh --install-deps` installs missing prerequisites via the detected
+  package manager (brew/apt/dnf/yum); without it, the exact install command is
+  shown per missing tool (codeman never installs system packages unasked).
+
 ## [0.1.0] - 2026-06-18
 
 ### Added

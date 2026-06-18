@@ -74,6 +74,11 @@ gitignored file and point `CODEMAN_PRIVATE_DENYLIST` at it.
 `git`, `rg` (ripgrep), and `jq`. Node + npm for gitnexus; `python3` and `gh` for
 flow-metrics; `curl` for the roborev installer.
 
+`/codeman-setup` **verifies all of these** and prints the exact install command
+for anything missing. Run `bash scripts/bootstrap.sh --install-deps` to have
+codeman install the missing ones via your package manager (brew/apt/dnf/yum), or
+`bash scripts/bootstrap.sh --check` to just report status without changes.
+
 ## Development
 
 ```bash
