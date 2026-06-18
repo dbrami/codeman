@@ -1,0 +1,11 @@
+{
+  "name": "codeman",
+  "owner": { "name": "Daniel Brami" },
+  "plugins": [
+    {
+      "name": "codeman",
+      "source": ".",
+      "description": "Generic code-improvement toolkit for Claude Code."
+    }
+  ]
+}
