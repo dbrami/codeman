@@ -42,8 +42,8 @@ done
 [ -n "$unpushed_section" ] && recap+="## Unpushed"$'\n'"$unpushed_section"$'\n'
 
 # Optional, opt-in: surface a personal notes/memory directory if the user sets one.
-if [ -n "${CODEMAN_MEMORY_DIR:-}" ] && [ -d "$CODEMAN_MEMORY_DIR" ]; then
-  recap+="## Notes"$'\n'"Review notes in \$CODEMAN_MEMORY_DIR for context."$'\n'
+if [ -n "${DESTRIER_MEMORY_DIR:-}" ] && [ -d "$DESTRIER_MEMORY_DIR" ]; then
+  recap+="## Notes"$'\n'"Review notes in \$DESTRIER_MEMORY_DIR for context."$'\n'
 fi
 
 [ -z "$recap" ] && exit 0

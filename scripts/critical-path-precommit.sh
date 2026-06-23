@@ -2,14 +2,14 @@
 # Critical-path pre-commit guard.
 # Warns when staged changes touch files matching user-defined critical paths,
 # reminding you to run gitnexus impact analysis before committing.
-# Patterns come from .codeman/critical-paths.txt (substring match, # comments).
-# Non-blocking by default; set CODEMAN_PRECOMMIT_BLOCK=1 to block the commit.
+# Patterns come from .destrier/critical-paths.txt (substring match, # comments).
+# Non-blocking by default; set DESTRIER_PRECOMMIT_BLOCK=1 to block the commit.
 #
-# Install:  /codeman-precommit-install
+# Install:  /destrier-precommit-install
 #   (or: ln -sf <plugin>/scripts/critical-path-precommit.sh .git/hooks/pre-commit)
 set -euo pipefail
-BLOCK=${CODEMAN_PRECOMMIT_BLOCK:-0}
-CFG=".codeman/critical-paths.txt"
+BLOCK=${DESTRIER_PRECOMMIT_BLOCK:-0}
+CFG=".destrier/critical-paths.txt"
 
 [ -f "$CFG" ] || exit 0
 staged_files=$(git diff --cached --name-only 2>/dev/null || true)
@@ -46,7 +46,7 @@ echo ""
 echo "Re-index after commit: npx gitnexus analyze"
 echo ""
 if [ "$BLOCK" = "1" ]; then
-  echo "Commit blocked (CODEMAN_PRECOMMIT_BLOCK=1). Bypass: git commit --no-verify"
+  echo "Commit blocked (DESTRIER_PRECOMMIT_BLOCK=1). Bypass: git commit --no-verify"
   exit 1
 fi
 exit 0

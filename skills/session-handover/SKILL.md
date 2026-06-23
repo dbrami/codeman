@@ -42,7 +42,7 @@ links stay stable when documents move. The relationship a link asserts is
 conveyed by the surrounding prose, not the link itself.
 
 ## Start of session
-1. Run `scripts/kb-init.sh <your-agent-label>` (or `/codeman-kb-init`). It creates
+1. Run `scripts/kb-init.sh <your-agent-label>` (or `/destrier-kb-init`). It creates
    today's `docs/knowledgebase/sessions/YYYY-MM-DD-summary.md` (with OKF
    frontmatter) if needed, scaffolds the bundle (`index.md`, `log.md`,
    `sessions/index.md`) on first run, and prints the last 3 summaries. It is

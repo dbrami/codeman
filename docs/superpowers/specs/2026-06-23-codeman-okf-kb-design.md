@@ -1,4 +1,4 @@
-# Align codeman's session-handover KB to the Open Knowledge Format (OKF) v0.1
+# Align destrier's session-handover KB to the Open Knowledge Format (OKF) v0.1
 
 **Date:** 2026-06-23
 **Status:** Implemented (v0.3.0)
@@ -12,7 +12,7 @@ this design is aligned to that file, not to the announcement blog (the blog's
 paraphrase differed from the spec in three material ways — see "Conformance"
 below).
 
-codeman's `session-handover` skill already produced a markdown knowledgebase under
+destrier's `session-handover` skill already produced a markdown knowledgebase under
 `docs/knowledgebase/` (dated session summaries + an uppercase `INDEX.md`), so it was
 ~80% OKF-shaped but missing YAML frontmatter, the `index.md`/`log.md` conventions,
 and cross-linking. Aligning to OKF makes the KB **portable and interoperable** —
@@ -79,7 +79,7 @@ docs/knowledgebase/
   `kb-concept.sh` usage. Ships workflow only, no content.
 - **Templates** — `templates/index.md` (reserved listing, no frontmatter),
   `templates/session-summary.md` (with frontmatter), `templates/concept.md` (new).
-- **Command** — `/codeman-kb-init` prose updated; mentions `kb-concept.sh`. No new command.
+- **Command** — `/destrier-kb-init` prose updated; mentions `kb-concept.sh`. No new command.
 
 ## Testing
 

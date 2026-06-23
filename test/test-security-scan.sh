@@ -26,7 +26,7 @@ rm -f "$tmp/leak.txt"
 # 3) A private-denylist codename is caught (custom denylist via env)
 echo "ACME_CODENAME secret project" > "$tmp/leak2.txt"
 printf 'ACME_CODENAME\n' > "$tmp/priv.txt"
-CODEMAN_PRIVATE_DENYLIST="$tmp/priv.txt" "$SCAN" --tree "$tmp" --quiet
+DESTRIER_PRIVATE_DENYLIST="$tmp/priv.txt" "$SCAN" --tree "$tmp" --quiet
 assert_exit_code 2 $? "private-denylist codename flagged"
 rm -f "$tmp/leak2.txt" "$tmp/priv.txt"
 
@@ -38,8 +38,8 @@ assert_exit_code 2 $? "private key header flagged"
 rm -f "$tmp/key.txt"
 
 # 5) The allowlisted public repo slug does NOT trip the scan
-echo "install via dbrami/codeman" > "$tmp/ok.txt"
+echo "install via dbrami/destrier" > "$tmp/ok.txt"
 "$SCAN" --tree "$tmp" --quiet
-assert_exit_code 0 $? "dbrami/codeman allowlisted"
+assert_exit_code 0 $? "dbrami/destrier allowlisted"
 
 pass "security-scan"
