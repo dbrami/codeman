@@ -1,9 +1,9 @@
 {
-  "name": "codeman",
+  "name": "destrier",
   "owner": { "name": "Daniel Brami" },
   "plugins": [
     {
-      "name": "codeman",
+      "name": "destrier",
       "source": ".",
       "description": "Generic code-improvement toolkit for Claude Code."
     }

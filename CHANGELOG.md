@@ -4,6 +4,26 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-06-23
+
+### Changed
+- **Project renamed: `codeman` → `destrier`** (a medieval warhorse). This is a
+  **breaking** rebrand with no compatibility aliases (hard-cut):
+  - All slash commands `/codeman-*` → `/destrier-*` (`/destrier-setup`,
+    `/destrier-kb-init`, `/destrier-precommit-install`, `/destrier-security-review`,
+    `/destrier-flow-metrics`).
+  - All environment variables `CODEMAN_*` → `DESTRIER_*`.
+  - Per-repo config dir `.codeman/` → `.destrier/`; vendor install dir
+    `~/.codeman/` → `~/.destrier/`.
+  - Plugin/marketplace name is now `destrier`; repo moved to
+    `github.com/dbrami/destrier` (the old URL redirects); the security-scan
+    repo-slug allowlist was updated accordingly.
+  - Action required: re-run `/destrier-setup`, and update any of your own
+    scripts/env that referenced the old `codeman` names or paths.
+
+### Added
+- README wordmark + tagline ("the warhorse that carries your code into battle").
+
 ## [0.3.0] - 2026-06-23
 
 ### Added

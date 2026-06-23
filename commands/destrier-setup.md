@@ -1,17 +1,17 @@
 ---
-description: Bootstrap codeman's external tools — build gitnexus from git and install roborev via its official installer.
+description: Bootstrap destrier's external tools — build gitnexus from git and install roborev via its official installer.
 ---
 
-Run the codeman bootstrap. It first verifies every prerequisite (git, rg, jq,
+Run the destrier bootstrap. It first verifies every prerequisite (git, rg, jq,
 node, npm, python3, gh, curl), then installs gitnexus (git clone + build) and
-roborev (official installer); neither tool is vendored or repackaged by codeman.
+roborev (official installer); neither tool is vendored or repackaged by destrier.
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"
 ```
 
 If any prerequisite is missing, the script prints the exact install command for
-the user's platform. To have codeman install the missing prerequisites
+the user's platform. To have destrier install the missing prerequisites
 automatically via the detected package manager (brew/apt/dnf/yum), re-run with:
 
 ```bash

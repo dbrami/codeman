@@ -1,5 +1,7 @@
 # codeman — Design Spec
 
+> Historical record. The project was renamed `codeman` → `destrier` in v0.4.0 (see CHANGELOG). This dated spec is preserved as written; names/commands below reflect the codeman era.
+
 **Date:** 2026-06-18
 **Status:** Approved (ready for implementation plan)
 

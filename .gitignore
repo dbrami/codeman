@@ -2,9 +2,9 @@
 dev/private-denylist.txt
 # Build artifacts and machine-specific implementation notes
 docs/plans/
-# Per-repo codeman config created by commands at runtime
-.codeman/
-# Dependencies / vendored external tools (installed by /codeman-setup)
+# Per-repo destrier config created by commands at runtime
+.destrier/
+# Dependencies / vendored external tools (installed by /destrier-setup)
 node_modules/
 # OS / language noise
 *.log

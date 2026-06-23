@@ -8,7 +8,7 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 
 (
   cd "$tmp" && git init -q
-  mkdir -p .codeman && printf 'payments/\n' > .codeman/critical-paths.txt
+  mkdir -p .destrier && printf 'payments/\n' > .destrier/critical-paths.txt
   mkdir -p payments && echo "x" > payments/charge.js
   git add payments/charge.js
   bash "$SC" 2>&1 > out.txt

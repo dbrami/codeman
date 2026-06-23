@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Minimal assert helpers for codeman's plain-bash test suite.
+# Minimal assert helpers for destrier's plain-bash test suite.
 #
 # Assertions record failures in _FAILED. Tests end with `pass "<name>"`, which
 # exits non-zero if any assertion failed. We deliberately do NOT use an EXIT

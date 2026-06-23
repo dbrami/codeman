@@ -2,7 +2,7 @@
 description: Security-review the pending changes — de-identification + secret scan, plus roborev security review when available.
 ---
 
-Perform codeman's security gate on the current pending changes.
+Perform destrier's security gate on the current pending changes.
 
 1. Run the de-identification + secret scan on staged changes:
 
@@ -14,7 +14,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/security-scan.sh" --staged || true
 
 ```bash
 command -v roborev >/dev/null 2>&1 && roborev review --type security --wait \
-  || echo "roborev not installed; run /codeman-setup to add deeper security review."
+  || echo "roborev not installed; run /destrier-setup to add deeper security review."
 ```
 
 Report all findings. Do not advise committing until both the scan is clean and

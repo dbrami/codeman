@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# codeman bootstrap — verifies prerequisites and installs the external tools
+# destrier bootstrap — verifies prerequisites and installs the external tools
 # WITHOUT vendoring them.
-#   gitnexus: git clone + npm build into $CODEMAN_HOME/vendor/gitnexus
+#   gitnexus: git clone + npm build into $DESTRIER_HOME/vendor/gitnexus
 #   roborev : official installer (prebuilt binary; no Go toolchain required)
 #
 # Flags:
@@ -10,12 +10,12 @@
 #                    package manager (brew/apt/dnf/yum) before continuing
 #
 # With no --install-deps, missing prerequisites are reported with the exact
-# install command for your platform; codeman never installs system packages
+# install command for your platform; destrier never installs system packages
 # without being asked.
 set -uo pipefail
 
-CODEMAN_HOME="${CODEMAN_HOME:-$HOME/.codeman}"
-GN_DIR="$CODEMAN_HOME/vendor/gitnexus"
+DESTRIER_HOME="${DESTRIER_HOME:-$HOME/.destrier}"
+GN_DIR="$DESTRIER_HOME/vendor/gitnexus"
 GN_REPO="https://github.com/abhigyanpatwari/GitNexus.git"
 ROBOREV_INSTALL="https://roborev.io/install.sh"
 
@@ -29,10 +29,10 @@ for a in "$@"; do
   esac
 done
 
-# have(): true if a command exists. CODEMAN_FAKE_MISSING (space-separated tool
+# have(): true if a command exists. DESTRIER_FAKE_MISSING (space-separated tool
 # names) forces specific tools to read as missing — a test seam only.
 have() {
-  case " ${CODEMAN_FAKE_MISSING:-} " in *" $1 "*) return 1;; esac
+  case " ${DESTRIER_FAKE_MISSING:-} " in *" $1 "*) return 1;; esac
   command -v "$1" >/dev/null 2>&1
 }
 
@@ -91,7 +91,7 @@ check_tool() { # tool purpose
   fi
 }
 
-echo "codeman prerequisite check"
+echo "destrier prerequisite check"
 check_tool git     "core: clone + git hooks"
 check_tool rg      "core: security-scan / de-identification gate"
 check_tool jq      "core: hook output + manifest tests"
@@ -138,7 +138,7 @@ fi
 
 # --- gitnexus: clone + build from git (Node only; never vendored) ---
 if have git && have node && have npm; then
-  mkdir -p "$CODEMAN_HOME/vendor"
+  mkdir -p "$DESTRIER_HOME/vendor"
   if [ -d "$GN_DIR/.git" ]; then
     echo "Updating gitnexus..."
     git -C "$GN_DIR" pull --ff-only || true
@@ -149,7 +149,7 @@ if have git && have node && have npm; then
   ( cd "$GN_DIR" && npm install && npm run build )
   echo "gitnexus built at $GN_DIR"
 else
-  echo "Skipping gitnexus: needs git + Node/npm (see above), then re-run /codeman-setup." >&2
+  echo "Skipping gitnexus: needs git + Node/npm (see above), then re-run /destrier-setup." >&2
 fi
 
 # --- roborev: official installer (prebuilt binary; no Go) ---
@@ -159,11 +159,11 @@ elif have curl; then
   echo "Installing roborev via official installer..."
   curl -fsSL "$ROBOREV_INSTALL" | bash
 else
-  echo "Skipping roborev: needs curl (see above), then re-run /codeman-setup." >&2
+  echo "Skipping roborev: needs curl (see above), then re-run /destrier-setup." >&2
 fi
 if have roborev; then
   roborev init || true
   roborev skills install || true
 fi
 
-echo "codeman setup complete. Restart Claude Code so the gitnexus MCP server loads."
+echo "destrier setup complete. Restart Claude Code so the gitnexus MCP server loads."

@@ -15,7 +15,7 @@ for t in git rg jq node npm python3 gh curl gitnexus roborev; do
 done
 
 # a missing prerequisite surfaces a MISSING line, an install command, and the opt-in
-out2="$(CODEMAN_FAKE_MISSING=jq bash "$BS" --check 2>&1)"; rc2=$?
+out2="$(DESTRIER_FAKE_MISSING=jq bash "$BS" --check 2>&1)"; rc2=$?
 assert_exit_code 0 "$rc2" "check still exits 0 with a missing tool"
 assert_contains "$out2" "MISSING" "missing tool reported as MISSING"
 assert_contains "$out2" "jq ->" "missing tool shows an install command"
@@ -23,9 +23,9 @@ assert_contains "$out2" "install-deps" "offers --install-deps for missing prereq
 
 # launcher with no install present -> exit 1 with guidance, no crash
 empty="$(mktemp -d)"; trap 'rm -rf "$empty"' EXIT
-out3="$(CODEMAN_HOME="$empty" bash "$ROOT/scripts/gitnexus-mcp-launch.sh" 2>&1)"; rc3=$?
+out3="$(DESTRIER_HOME="$empty" bash "$ROOT/scripts/gitnexus-mcp-launch.sh" 2>&1)"; rc3=$?
 assert_exit_code 1 "$rc3" "launcher exits 1 when gitnexus missing"
-assert_contains "$out3" "codeman-setup" "launcher tells user to run setup"
+assert_contains "$out3" "destrier-setup" "launcher tells user to run setup"
 
 # .mcp.json valid and points at the launcher
 if command -v jq >/dev/null 2>&1; then

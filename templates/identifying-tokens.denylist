@@ -1,8 +1,8 @@
-# codeman identifying-tokens denylist (GENERIC, safe to publish).
+# destrier identifying-tokens denylist (GENERIC, safe to publish).
 # One extended-regex pattern per line. Lines starting with # are comments.
 # These are STRUCTURAL patterns that should never appear in a public repo.
 # Add your OWN project codenames to a LOCAL, gitignored file and point
-# CODEMAN_PRIVATE_DENYLIST at it (default: dev/private-denylist.txt).
+# DESTRIER_PRIVATE_DENYLIST at it (default: dev/private-denylist.txt).
 #
 # Absolute user-home paths (leak machine/user/project layout)
 /Users/[^/[:space:]]+/(Projects|Documents|Desktop|Box)/

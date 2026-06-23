@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Reusable de-identification + secret scan. Shared by the test suite, the
-# /codeman-security-review command, and the pre-commit gate.
+# /destrier-security-review command, and the pre-commit gate.
 #
 # Usage:
 #   security-scan.sh --tree <dir>   scan all (non-ignored) files under <dir>
@@ -11,15 +11,15 @@
 #
 # Patterns come from a GENERIC shipped denylist plus an optional PRIVATE
 # (gitignored) denylist of the author's real codenames. The literal public
-# repo slug "dbrami/codeman" is allowlisted.
+# repo slug "dbrami/destrier" is allowlisted.
 set -uo pipefail
 
 MODE="tree"; TARGET="."; QUIET=0
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
-DENYLIST="${CODEMAN_DENYLIST:-$ROOT/templates/identifying-tokens.denylist}"
-PRIVATE="${CODEMAN_PRIVATE_DENYLIST:-$ROOT/dev/private-denylist.txt}"
-ALLOW='dbrami/codeman'
+DENYLIST="${DESTRIER_DENYLIST:-$ROOT/templates/identifying-tokens.denylist}"
+PRIVATE="${DESTRIER_PRIVATE_DENYLIST:-$ROOT/dev/private-denylist.txt}"
+ALLOW='dbrami/destrier'
 
 while [ $# -gt 0 ]; do
   case "$1" in
