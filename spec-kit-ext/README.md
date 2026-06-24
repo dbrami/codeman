@@ -15,9 +15,9 @@ Two optional (prompted, never auto-run) lifecycle hooks:
 | `after_taskstoissues` | `speckit.destrier-sdd.metrics` | Offers to run destrier `flow-metrics` once `tasks.md` has become GitHub issues (`tasks -> issues -> metrics`). Reuses `scripts/flow-metrics.py`. |
 
 Both bridge commands resolve the destrier plugin root from
-`.specify/extensions/destrier-sdd/.destrier-root` (written by `/destrier-spec-init`)
-and degrade gracefully — if destrier is not present, they report and stop without
-error.
+`<git-dir>/destrier-root` (written by `/destrier-spec-init` inside the git dir, so
+the absolute path is never committed) and degrade gracefully — if destrier is not
+present, they report and stop without error.
 
 ## Install
 

@@ -97,6 +97,14 @@ fi
 [ -f "$EXT_DIR/extension.yml" ] || {
   echo "spec-init: bridge extension not found at $EXT_DIR" >&2; exit 1; }
 
+# SDD requires a git repository: spec-kit's feature/branch workflow needs it, and
+# the bridge commands locate destrier via a pointer stored inside the git dir.
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
+if [ -z "$GIT_DIR" ]; then
+  echo "spec-init: this is not a git repository. Run 'git init' first, then /destrier-spec-init." >&2
+  exit 1
+fi
+
 # --- 1. pinned specify CLI (no vendoring) ---
 PIN_MM="$(printf '%s' "$SPECKIT_TAG" | sed 's/^v//' | cut -d. -f1-2)"   # e.g. 0.11
 if have specify; then
@@ -105,16 +113,35 @@ else
   echo "Installing specify CLI ($SPECKIT_TAG) via uv ..."
   uv tool install specify-cli --from "$SPECKIT_REF" || {
     echo "spec-init: failed to install specify-cli" >&2; exit 1; }
+  # uv installs tool executables into its tool-bin dir, which may not be on the
+  # current shell PATH yet (fresh uv setups). Make `specify` resolvable for the
+  # remainder of this run.
+  if ! command -v specify >/dev/null 2>&1; then
+    UVBIN="$(uv tool dir --bin 2>/dev/null || true)"
+    [ -n "$UVBIN" ] && [ -d "$UVBIN" ] && PATH="$UVBIN:$PATH"
+    [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
+    export PATH
+  fi
 fi
 
-# Verify the installed version is within destrier's tested minor. Warn (non-fatal)
-# with explicit upgrade instructions if not — the bridge extension's `requires`
-# range still enforces hard at `extension add`.
+# `specify` must be resolvable before we touch the repo; if not, fail with
+# actionable PATH guidance rather than erroring mid-init.
+if ! command -v specify >/dev/null 2>&1; then
+  echo "spec-init: 'specify' was installed but is not on PATH." >&2
+  echo "  Add uv's tool-bin to your PATH (run: uv tool update-shell) and re-run /destrier-spec-init." >&2
+  exit 1
+fi
+
+# Enforce version compatibility BEFORE any repo mutation: an unsupported version
+# would otherwise init the repo and only fail later at `extension add`, leaving a
+# partial setup. Proceed only when the installed minor matches the pinned one.
 SP_VER="$(specify --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
 SP_MM="$(printf '%s' "$SP_VER" | cut -d. -f1-2)"
 if [ -n "$SP_MM" ] && [ "$SP_MM" != "$PIN_MM" ]; then
-  echo "WARNING: specify ${SP_VER:-unknown} is outside destrier's tested range (pinned $SPECKIT_TAG)." >&2
-  echo "         If the steps below fail on compatibility, run: specify self upgrade --tag $SPECKIT_TAG" >&2
+  echo "spec-init: specify ${SP_VER} is outside destrier's supported range (~${PIN_MM}.x; pinned $SPECKIT_TAG)." >&2
+  echo "  Upgrade to the pinned version, then re-run /destrier-spec-init:" >&2
+  echo "    specify self upgrade --tag $SPECKIT_TAG" >&2
+  exit 1
 fi
 
 # --- 2. project init (idempotent; self-heals a partial/interrupted init) ---
@@ -137,8 +164,11 @@ else
 fi
 
 # --- 4. record the destrier plugin root for the bridge commands ---
+# Store it inside the git dir, which is never part of the working tree, so this
+# absolute (home) path can never be committed or leak — see the de-identification
+# gate. The bridge commands read it back via `git rev-parse --git-dir`.
 if [ "$EXT_OK" = 1 ] && [ -d "$DEST_EXT" ]; then
-  printf '%s\n' "$PLUGIN_ROOT" > "$DEST_EXT/.destrier-root"
+  printf '%s\n' "$PLUGIN_ROOT" > "$GIT_DIR/destrier-root"
 else
   EXT_OK=0
 fi

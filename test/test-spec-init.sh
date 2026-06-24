@@ -82,9 +82,12 @@ assert_contains "$out" "3.11" "python floor (3.11) surfaced when too old"
 # ---------------------------------------------------------------------------
 if python3 -c 'import sys; sys.exit(0 if sys.version_info>=(3,11) else 1)' 2>/dev/null && command -v git >/dev/null 2>&1; then
   bin="$(mktemp -d)"; work="$(mktemp -d)"
+  ( cd "$work" && git init -q )
+  # Stub reports an in-range version so the pre-init compat gate passes.
   cat > "$bin/specify" <<'STUB'
 #!/usr/bin/env bash
 case "$1" in
+  --version) echo "specify 0.11.6" ;;
   init)      mkdir -p .specify/memory ;;
   extension) mkdir -p .specify/extensions/destrier-sdd ;;
 esac
@@ -98,8 +101,10 @@ STUB
   o1="$(run_init 2>&1)"; r1=$?
   assert_exit_code 0 "$r1" "first run succeeds"
   assert_contains "$o1" "ready in this repo" "first run reports SDD ready (extension installed)"
-  if [ -f "$work/.specify/extensions/destrier-sdd/.destrier-root" ]; then echo "  ok: .destrier-root recorded"; else fail ".destrier-root not written"; fi
-  assert_eq "$ROOT" "$(cat "$work/.specify/extensions/destrier-sdd/.destrier-root" 2>/dev/null)" ".destrier-root points at plugin root"
+  if [ -f "$work/.git/destrier-root" ]; then echo "  ok: destrier-root recorded in the git dir"; else fail "destrier-root not written to .git"; fi
+  assert_eq "$ROOT" "$(cat "$work/.git/destrier-root" 2>/dev/null)" "destrier-root points at plugin root"
+  # Privacy: the absolute-path pointer must NOT live in the working tree.
+  if [ -e "$work/.specify/extensions/destrier-sdd/.destrier-root" ]; then fail "root pointer must not live under the working tree"; else echo "  ok: no absolute-path pointer in the working tree"; fi
 
   # Seed a constitution, then re-run: init is idempotent and the file is preserved.
   printf 'SENTINEL-CONSTITUTION\n' > "$work/.specify/memory/constitution.md"
@@ -107,17 +112,36 @@ STUB
   assert_exit_code 0 "$r2" "second run succeeds (idempotent)"
   assert_eq "SENTINEL-CONSTITUTION" "$(cat "$work/.specify/memory/constitution.md")" "existing constitution preserved on re-run"
 
+  # An incompatible specify version must fail BEFORE any repo mutation.
+  cat > "$bin/specify" <<'STUB'
+#!/usr/bin/env bash
+case "$1" in
+  --version) echo "specify 0.10.9" ;;
+  init)      mkdir -p .specify/memory ;;
+  extension) mkdir -p .specify/extensions/destrier-sdd ;;
+esac
+exit 0
+STUB
+  chmod +x "$bin/specify"
+  workv="$(mktemp -d)"; ( cd "$workv" && git init -q )
+  o4="$( ( cd "$workv" && PATH="$bin:$PATH" CLAUDE_PLUGIN_ROOT="$ROOT" bash "$SPEC_INIT" ) 2>&1 )"; r4=$?
+  assert_exit_code 1 "$r4" "incompatible specify version exits non-zero"
+  assert_contains "$o4" "outside destrier's supported range" "version gate explains the mismatch"
+  if [ -e "$workv/.specify" ]; then fail "repo was mutated despite an incompatible version"; else echo "  ok: no repo mutation on incompatible version"; fi
+  rm -rf "$workv"
+
   # A failing extension install must surface as a non-zero exit (not a false "ready").
   cat > "$bin/specify" <<'STUB'
 #!/usr/bin/env bash
 case "$1" in
+  --version) echo "specify 0.11.6" ;;
   init)      mkdir -p .specify/memory ;;
   extension) exit 3 ;;   # simulate extension registration failure
 esac
 exit 0
 STUB
   chmod +x "$bin/specify"
-  work2="$(mktemp -d)"
+  work2="$(mktemp -d)"; ( cd "$work2" && git init -q )
   o3="$( ( cd "$work2" && PATH="$bin:$PATH" CLAUDE_PLUGIN_ROOT="$ROOT" bash "$SPEC_INIT" ) 2>&1 )"; r3=$?
   rm -rf "$work2"
   assert_exit_code 1 "$r3" "extension install failure exits non-zero"

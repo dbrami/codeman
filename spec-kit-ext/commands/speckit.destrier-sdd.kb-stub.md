@@ -13,10 +13,11 @@ sessions in destrier's concept graph.
 ## Steps
 
 1. **Locate destrier.** Read the destrier plugin root from
-   `.specify/extensions/destrier-sdd/.destrier-root` (a single path written at
-   `/destrier-spec-init` time). If the file is missing or the path does not
-   contain `scripts/kb-concept.sh`, report that destrier is not available in this
-   project and stop without error (the bridge is opt-in).
+   `<git-dir>/destrier-root`, where `<git-dir>` is `git rev-parse --git-dir` (a
+   single path written at `/destrier-spec-init` time, kept inside the git dir so
+   the absolute path is never committed). If the file is missing or the path does
+   not contain `scripts/kb-concept.sh`, report that destrier is not available in
+   this project and stop without error (the bridge is opt-in).
 
 2. **Find the plan.** Use the current feature's plan: the `IMPL_PLAN`/`SPECS_DIR`
    from spec-kit's feature state if available, otherwise the most recently
@@ -27,7 +28,7 @@ sessions in destrier's concept graph.
    the OKF format):
 
    ```bash
-   ROOT="$(cat .specify/extensions/destrier-sdd/.destrier-root)"
+   ROOT="$(cat "$(git rev-parse --git-dir)/destrier-root")"
    bash "$ROOT/scripts/kb-concept.sh" decision "<concept title>" sdd,plan
    ```
 
