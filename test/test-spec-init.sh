@@ -112,6 +112,16 @@ STUB
   assert_exit_code 0 "$r2" "second run succeeds (idempotent)"
   assert_eq "SENTINEL-CONSTITUTION" "$(cat "$work/.specify/memory/constitution.md")" "existing constitution preserved on re-run"
 
+  # Migration: a legacy working-tree pointer left by an older spec-init must be
+  # removed once the leak-safe git-dir pointer is written.
+  workm="$(mktemp -d)"
+  ( cd "$workm" && git init -q && mkdir -p .specify/extensions/destrier-sdd && printf '/old/leaked/home/path\n' > .specify/extensions/destrier-sdd/.destrier-root )
+  o7="$( ( cd "$workm" && PATH="$bin:$PATH" CLAUDE_PLUGIN_ROOT="$ROOT" bash "$SPEC_INIT" ) 2>&1 )"; r7=$?
+  assert_exit_code 0 "$r7" "migration run succeeds"
+  if [ -e "$workm/.specify/extensions/destrier-sdd/.destrier-root" ]; then fail "legacy working-tree pointer not removed on migration"; else echo "  ok: legacy working-tree pointer removed on migration"; fi
+  assert_eq "$ROOT" "$(cat "$workm/.git/destrier-root" 2>/dev/null)" "git-dir pointer written on migration"
+  rm -rf "$workm"
+
   # An incompatible specify version must fail BEFORE any repo mutation.
   cat > "$bin/specify" <<'STUB'
 #!/usr/bin/env bash

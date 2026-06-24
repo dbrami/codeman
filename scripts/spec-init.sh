@@ -180,6 +180,11 @@ if [ "$EXT_OK" = 1 ] && [ -d "$DEST_EXT" ]; then
   if ! printf '%s\n' "$PLUGIN_ROOT" > "$GIT_DIR/destrier-root" 2>/dev/null; then
     echo "spec-init: failed to record the destrier root at $GIT_DIR/destrier-root" >&2
     EXT_OK=0
+  else
+    # Migrate away from the legacy working-tree pointer: older spec-init versions
+    # wrote the absolute path here, where it could be committed/leak. Remove it now
+    # that the leak-safe git-dir pointer is in place.
+    rm -f "$DEST_EXT/.destrier-root"
   fi
 else
   EXT_OK=0
